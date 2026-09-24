@@ -29,6 +29,11 @@ jobs:
           sleep 3
           pytest tests/test_full_suite.py -v
 
+      - name: Test SentinelAPI CI Security Gate CLI
+        run: |
+          export PYTHONPATH=.
+          python -m backend.cli --spec backend/sandbox/crapi_openapi.yaml --target http://127.0.0.1:8000/sandbox-target --output ci-report.json || true
+
   frontend-build:
     runs-on: ubuntu-latest
     steps:
