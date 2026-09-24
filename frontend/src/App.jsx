@@ -4,9 +4,12 @@ import RiskMetrics from './components/RiskMetrics';
 import ScanProgress from './components/ScanProgress';
 import FindingCard from './components/FindingCard';
 import AgenticChainView from './components/AgenticChainView';
+import AttackGraphView from './components/AttackGraphView';
+import PrRemediationModal from './components/PrRemediationModal';
+import PentestChatbot from './components/PentestChatbot';
 import ScanConfigModal from './components/ScanConfigModal';
 import KeyModal from './components/KeyModal';
-import { Shield, Zap, Search, Filter, Sparkles, RefreshCw, AlertOctagon } from 'lucide-react';
+import { Shield, Zap, Search, Filter, Sparkles, Layers, Bot, Terminal, GitPullRequest } from 'lucide-react';
 
 export default function App() {
   const [isScanning, setIsScanning] = useState(false);
@@ -18,11 +21,16 @@ export default function App() {
   const [findings, setFindings] = useState([]);
   const [activeFilter, setActiveFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
-  
+  const [activeTab, setActiveTab] = useState('findings'); // 'findings', 'graph', 'agent'
+
+  // Modals & Chat state
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [isKeyModalOpen, setIsKeyModalOpen] = useState(false);
   const [apiKey, setApiKey] = useState(localStorage.getItem('sentinel_gemini_key') || '');
   const [defaultSpec, setDefaultSpec] = useState('');
+  const [selectedPatch, setSelectedPatch] = useState(null);
+  const [isPrModalOpen, setIsPrModalOpen] = useState(false);
+  const [chatFindingContext, setChatFindingContext] = useState(null);
 
   // Fetch demo spec on mount
   useEffect(() => {
@@ -102,6 +110,27 @@ export default function App() {
     }
   };
 
+  const handleGeneratePr = async (finding) => {
+    try {
+      const res = await fetch('/api/remediation/pr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(finding)
+      });
+      if (res.ok) {
+        const patch = await res.json();
+        setSelectedPatch(patch);
+        setIsPrModalOpen(true);
+      }
+    } catch (e) {
+      console.error('Error generating PR patch:', e);
+    }
+  };
+
+  const handleAskAi = (finding) => {
+    setChatFindingContext(finding);
+  };
+
   const filteredFindings = findings.filter(f => {
     const matchesFilter = activeFilter === 'ALL' || f.severity === activeFilter;
     const matchesSearch = !searchQuery || 
@@ -120,13 +149,13 @@ export default function App() {
         onOpenNewScan={() => setIsConfigOpen(true)}
       />
 
-      <main style={{ flex: 1, padding: '30px 36px', maxWidth: '1440px', margin: '0 auto', width: '100%' }}>
-        {/* Welcome Hero when no scan has run */}
+      <main style={{ flex: 1, padding: '28px 36px', maxWidth: '1440px', margin: '0 auto', width: '100%' }}>
+        {/* Welcome Hero Banner when idle */}
         {!summary && !isScanning && (
           <div className="glass-panel glow-cyan" style={{
             padding: '36px',
             marginBottom: '30px',
-            background: 'linear-gradient(135deg, rgba(56, 189, 248, 0.08) 0%, rgba(15, 23, 42, 0.9) 100%)',
+            background: 'linear-gradient(135deg, rgba(56, 189, 248, 0.08) 0%, rgba(15, 23, 42, 0.95) 100%)',
             border: '1px solid rgba(56, 189, 248, 0.25)',
             display: 'flex',
             justifyContent: 'space-between',
@@ -181,8 +210,8 @@ export default function App() {
               </div>
               <div style={{ color: '#f87171', marginBottom: '6px' }}>🔴 OWASP API1:2023 - BOLA / IDOR</div>
               <div style={{ color: '#fb923c', marginBottom: '6px' }}>🟠 OWASP API5:2023 - BFLA (Admin Escalation)</div>
-              <div style={{ color: '#facc15', marginBottom: '6px' }}>🟡 OWASP API3:2023 - Excessive Data Exposure</div>
-              <div style={{ color: '#60a5fa', marginBottom: '6px' }}>🔵 OWASP API4:2023 - Unrestricted Resource Use</div>
+              <div style={{ color: '#facc15', marginBottom: '6px' }}>🟡 OWASP API3:2023 - Differential Schema Drift</div>
+              <div style={{ color: '#60a5fa', marginBottom: '6px' }}>🔵 OWASP API4:2023 - Rate Limiting Bypass</div>
               <div style={{ color: '#a855f7', marginTop: '10px', paddingTop: '10px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
                 🤖 Autonomous Pentest Agent (Chaining)
               </div>
@@ -210,14 +239,58 @@ export default function App() {
           />
         )}
 
-        {/* Autonomous Pentest Agent Exploit Chain View */}
-        {summary?.ai_risk_overview?.agentic_chain && (
+        {/* View Mode Navigation Tabs */}
+        {summary && (
+          <div style={{
+            display: 'flex',
+            gap: '12px',
+            marginBottom: '20px',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+            paddingBottom: '8px'
+          }}>
+            <button
+              onClick={() => setActiveTab('findings')}
+              className={`tab-btn ${activeTab === 'findings' ? 'active' : ''}`}
+              style={{ fontSize: '14px' }}
+            >
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                <Shield size={16} /> Audit Findings ({findings.length})
+              </span>
+            </button>
+            <button
+              onClick={() => setActiveTab('graph')}
+              className={`tab-btn ${activeTab === 'graph' ? 'active' : ''}`}
+              style={{ fontSize: '14px' }}
+            >
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                <Layers size={16} color="var(--cyan-accent)" /> Visual Attack Graph
+              </span>
+            </button>
+            <button
+              onClick={() => setActiveTab('agent')}
+              className={`tab-btn ${activeTab === 'agent' ? 'active' : ''}`}
+              style={{ fontSize: '14px' }}
+            >
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                <Bot size={16} color="var(--ai-purple)" /> Autonomous Exploit Chain
+              </span>
+            </button>
+          </div>
+        )}
+
+        {/* View 1: Visual Attack Graph */}
+        {summary && activeTab === 'graph' && summary.ai_risk_overview?.attack_graph && (
+          <AttackGraphView graphData={summary.ai_risk_overview.attack_graph} />
+        )}
+
+        {/* View 2: Autonomous Pentest Agent Exploit Chain */}
+        {summary && activeTab === 'agent' && summary.ai_risk_overview?.agentic_chain && (
           <AgenticChainView agenticData={summary.ai_risk_overview.agentic_chain} />
         )}
 
-        {/* Findings Section */}
-        {findings.length > 0 && (
-          <div style={{ marginTop: '20px' }}>
+        {/* View 3: Findings Section */}
+        {summary && activeTab === 'findings' && findings.length > 0 && (
+          <div>
             {/* Filter and Search Bar */}
             <div style={{
               display: 'flex',
@@ -274,13 +347,32 @@ export default function App() {
 
             {/* Findings Cards List */}
             {filteredFindings.map((finding) => (
-              <FindingCard key={finding.id} finding={finding} />
+              <FindingCard
+                key={finding.id}
+                finding={finding}
+                onGeneratePr={handleGeneratePr}
+                onAskAi={handleAskAi}
+              />
             ))}
           </div>
         )}
       </main>
 
-      {/* Modals */}
+      {/* Floating Pentest AI Chatbot */}
+      <PentestChatbot
+        scanId={scanId}
+        findingContext={chatFindingContext}
+        apiKey={apiKey}
+      />
+
+      {/* PR Remediation Modal */}
+      <PrRemediationModal
+        isOpen={isPrModalOpen}
+        onClose={() => setIsPrModalOpen(false)}
+        patchData={selectedPatch}
+      />
+
+      {/* Config and Key Modals */}
       <ScanConfigModal
         isOpen={isConfigOpen}
         onClose={() => setIsConfigOpen(false)}

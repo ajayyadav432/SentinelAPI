@@ -168,3 +168,37 @@ def get_json_report(scan_id: str):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+
+from backend.reporting.attack_graph import AttackGraphBuilder
+from backend.ai.remediation import PrRemediationEngine
+from backend.ai.chat import PentestChatbot, ChatRequest, ChatResponse
+from backend.reporting.finding import Finding
+
+remediation_engine = PrRemediationEngine()
+chatbot = PentestChatbot()
+
+@app.get("/api/scan/{scan_id}/attack-graph")
+def get_attack_graph(scan_id: str):
+    if scan_id not in ACTIVE_SCANS:
+        raise HTTPException(status_code=404, detail="Scan not found.")
+    summary = ACTIVE_SCANS[scan_id]
+    if summary.ai_risk_overview and "attack_graph" in summary.ai_risk_overview:
+        return summary.ai_risk_overview["attack_graph"]
+    # Fallback build
+    spec_path = os.path.join(os.path.dirname(__file__), "sandbox", "crapi_openapi.yaml")
+    with open(spec_path, "r") as f:
+        spec_text = f.read()
+    parsed = SpecParser.parse_spec(SpecParser.parse_content(spec_text))
+    return AttackGraphBuilder.build_graph(parsed, summary.findings)
+
+@app.post("/api/remediation/pr")
+def generate_remediation_pr(finding: Finding):
+    patch_info = remediation_engine.generate_pr_patch(finding)
+    return patch_info
+
+@app.post("/api/chat", response_model=ChatResponse)
+async def pentest_chat(req: ChatRequest):
+    scan_summary_dict = None
+    if req.scan_id and req.scan_id in ACTIVE_SCANS:
+        scan_summary_dict = ACTIVE_SCANS[req.scan_id].model_dump()
+    return await chatbot.chat(req, scan_summary=scan_summary_dict)

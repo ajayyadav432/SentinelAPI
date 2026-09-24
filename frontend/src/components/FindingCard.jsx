@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, Copy, Check, ShieldAlert, Sparkles, Terminal, Wrench } from 'lucide-react';
+import { ChevronDown, ChevronUp, Copy, Check, ShieldAlert, Sparkles, Terminal, Wrench, GitPullRequest, Bot } from 'lucide-react';
 
-export default function FindingCard({ finding }) {
+export default function FindingCard({ finding, onGeneratePr, onAskAi }) {
   const [expanded, setExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState('poc'); // 'poc', 'ai', 'fix'
   const [copiedCurl, setCopiedCurl] = useState(false);
@@ -91,7 +91,35 @@ export default function FindingCard({ finding }) {
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {/* Generate Fix PR Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onGeneratePr) onGeneratePr(finding);
+            }}
+            className="btn-primary"
+            style={{ padding: '5px 12px', fontSize: '12px', background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)' }}
+            title="Generate automated GitHub Pull Request patch"
+          >
+            <GitPullRequest size={13} />
+            <span>Fix PR</span>
+          </button>
+
+          {/* Ask AI Copilot Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onAskAi) onAskAi(finding);
+            }}
+            className="btn-secondary"
+            style={{ padding: '5px 10px', fontSize: '12px', color: '#d8b4fe', borderColor: 'rgba(168, 85, 247, 0.3)' }}
+            title="Ask AI Pentester about this flaw"
+          >
+            <Bot size={13} color="var(--ai-purple)" />
+            <span>Ask AI</span>
+          </button>
+
           <button
             onClick={handleCopyCurl}
             className="btn-secondary"
@@ -101,6 +129,7 @@ export default function FindingCard({ finding }) {
             {copiedCurl ? <Check size={12} color="#34d399" /> : <Copy size={12} />}
             <span>{copiedCurl ? 'Copied' : 'cURL'}</span>
           </button>
+
           {expanded ? <ChevronUp size={18} color="var(--text-dim)" /> : <ChevronDown size={18} color="var(--text-dim)" />}
         </div>
       </div>
@@ -161,7 +190,7 @@ export default function FindingCard({ finding }) {
               {finding.response_snippet && (
                 <div>
                   <span style={{ fontSize: '11px', color: 'var(--text-dim)', fontWeight: 600, textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
-                    Exfiltrated Response Payload (HTTP {finding.status_code_observed})
+                    Observed Response Payload Snippet
                   </span>
                   <pre className="code-block" style={{ color: '#f87171' }}>
                     {finding.response_snippet}

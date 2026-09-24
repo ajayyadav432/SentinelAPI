@@ -12,7 +12,9 @@ from backend.scanners.bfla_scanner import BflaScanner
 from backend.scanners.data_exposure import DataExposureScanner
 from backend.scanners.rate_limit import RateLimitScanner
 from backend.scanners.misconfig import MisconfigScanner
+from backend.scanners.schema_drift import SchemaDriftScanner
 from backend.reporting.finding import Finding, ScanSummary
+from backend.reporting.attack_graph import AttackGraphBuilder
 
 logger = logging.getLogger("sentinel.scheduler")
 
@@ -44,6 +46,7 @@ class ScanScheduler:
         self.data_scanner = DataExposureScanner(self.http_client, self.session_mgr, self.ai)
         self.rate_scanner = RateLimitScanner(self.http_client, self.session_mgr, self.ai)
         self.misc_scanner = MisconfigScanner(self.http_client, self.session_mgr, self.ai)
+        self.drift_scanner = SchemaDriftScanner(self.http_client, self.session_mgr, self.ai)
         self.agent = AutonomousPentestAgent(self.http_client, self.session_mgr, self.ai)
 
     async def _emit_progress(self, message: str, percent: float, current_endpoint: str = "", new_finding: Optional[Finding] = None):
@@ -79,7 +82,7 @@ class ScanScheduler:
         await self._emit_progress("AI Security Brain analyzing authorization topology and attack vectors...", 10.0)
         ai_risk_overview = await self.ai.analyze_spec_risks(spec_summary)
 
-        # 2. Iterate through endpoints with scanners
+        # 2. Iterate through endpoints with all scanners
         scanned_count = 0
         for i, ep in enumerate(spec.endpoints):
             ep_label = f"{ep.method} {ep.path}"
@@ -92,7 +95,8 @@ class ScanScheduler:
                 self.bfla_scanner.scan_endpoint(ep),
                 self.data_scanner.scan_endpoint(ep),
                 self.rate_scanner.scan_endpoint(ep),
-                self.misc_scanner.scan_endpoint(ep)
+                self.misc_scanner.scan_endpoint(ep),
+                self.drift_scanner.scan_endpoint(ep)
             ]
 
             results = await asyncio.gather(*scan_tasks, return_exceptions=True)
@@ -108,14 +112,17 @@ class ScanScheduler:
                         )
 
             scanned_count += 1
-            # Small yield for async loop
             await asyncio.sleep(0.01)
 
         # 3. Autonomous Pentest Agentic Chain
         await self._emit_progress("Launching Autonomous Pentest Agent for multi-step exploit chaining...", 85.0)
         agentic_chain = await self.agent.run_autonomous_chain(spec)
 
-        await self._emit_progress("Finalizing risk scoring and generating remediation matrix...", 95.0)
+        # 4. Generate Interactive Attack Graph
+        await self._emit_progress("Constructing topological API attack graph & asset breach vectors...", 92.0)
+        attack_graph_data = AttackGraphBuilder.build_graph(spec, findings)
+
+        await self._emit_progress("Finalizing risk scoring and generating remediation matrix...", 97.0)
         await self.http_client.close()
 
         # Compute counts & risk score
@@ -147,7 +154,8 @@ class ScanScheduler:
             findings=findings,
             ai_risk_overview={
                 **ai_risk_overview,
-                "agentic_chain": agentic_chain.model_dump() if agentic_chain else None
+                "agentic_chain": agentic_chain.model_dump() if agentic_chain else None,
+                "attack_graph": attack_graph_data
             }
         )
 
