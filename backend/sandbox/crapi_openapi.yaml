@@ -1,0 +1,89 @@
+openapi: 3.0.0
+info:
+  title: Automotive Cloud Service (crAPI Demo)
+  version: 2.4.0
+  description: Core microservices for next-gen connected vehicles, community forums, and driver telematics.
+servers:
+  - url: http://127.0.0.1:8888
+    description: Sandbox Vulnerable Microservice
+paths:
+  /community/posts:
+    get:
+      summary: Retrieve community forum discussions
+      description: Returns public driver discussion posts containing author information.
+      responses:
+        '200':
+          description: Successful list of forum posts
+  /identity/api/v2/vehicle/{vehicle_id}/location:
+    get:
+      summary: Get live telemetry and GPS coordinates of vehicle
+      description: Returns real-time GPS coordinates, battery level, and model data.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: vehicle_id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "1"
+      responses:
+        '200':
+          description: Telemetry data retrieved
+  /identity/api/v2/user/profile:
+    get:
+      summary: Retrieve authenticated user profile
+      description: Returns profile details for current driver.
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User profile
+  /admin/api/v1/users/{user_id}:
+    delete:
+      summary: Administrative user account deletion
+      description: Administrative capability to purge driver records.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: User account purged
+  /admin/api/v1/system/config:
+    get:
+      summary: Retrieve system environment and backend configuration
+      description: Internal diagnostic dump of microservice environment settings.
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Environment config dump
+  /auth/api/v1/login:
+    post:
+      summary: Authenticate user credentials
+      description: Generates user session token.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Session token
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

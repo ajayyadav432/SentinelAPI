@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  crapi-web:
+    image: crapi/crapi-web:latest
+    ports:
+      - "8888:80"
+    restart: unless-stopped
+    networks:
+      - crapi-net
+
+networks:
+  crapi-net:
+    driver: bridge
