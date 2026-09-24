@@ -30,9 +30,9 @@ export PYTHONPATH="$SCRIPT_DIR"
 uvicorn backend.main:app --host 127.0.0.1 --port 8000 &
 BACKEND_PID=$!
 
-echo "[+] Starting SentinelAPI Frontend on http://127.0.0.1:5173 ..."
+echo "[+] Starting SentinelAPI Frontend on http://127.0.0.1:5180 ..."
 cd frontend
-npm run dev -- --host 127.0.0.1 --port 5173 &
+npm run dev -- --host 127.0.0.1 --port 5180 &
 FRONTEND_PID=$!
 cd ..
 
@@ -49,7 +49,7 @@ trap cleanup SIGINT SIGTERM
 
 echo "=========================================================="
 echo "🚀 SentinelAPI is LIVE and READY FOR JUDGES!"
-echo "   Dashboard UI : http://127.0.0.1:5173"
+echo "   Dashboard UI : http://127.0.0.1:5180"
 echo "   Backend API  : http://127.0.0.1:8000"
 echo "   Target API   : http://127.0.0.1:8000/sandbox-target"
 echo "=========================================================="

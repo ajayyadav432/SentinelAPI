@@ -88,7 +88,7 @@ cd SentinelAPI
 ./demo.sh
 ```
 
-- **Dashboard UI**: [http://127.0.0.1:5173](http://127.0.0.1:5173)
+- **Dashboard UI**: [http://127.0.0.1:5180](http://127.0.0.1:5180)
 - **Scanner API**: [http://127.0.0.1:8000](http://127.0.0.1:8000)
 - **Built-in Target Sandbox**: [http://127.0.0.1:8000/sandbox-target](http://127.0.0.1:8000/sandbox-target)
 
