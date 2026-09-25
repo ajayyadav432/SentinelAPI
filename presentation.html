@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>SentinelAPI - AmiHacks Pitch</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Reveal.js Core CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/theme/black.min.css">
+    
+    <!-- Code Syntax Highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/plugin/highlight/monokai.min.css">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+
+        :root {
+            --primary: #00f0ff;
+            --danger: #ff0055;
+            --bg-dark: #05050a;
+            --glass-bg: rgba(20, 20, 35, 0.4);
+            --glass-border: rgba(0, 240, 255, 0.2);
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            font-family: 'Outfit', sans-serif;
+        }
+
+        /* Particles Background Container */
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+
+        /* Reveal Override */
+        .reveal {
+            font-family: 'Outfit', sans-serif;
+        }
+        .reveal h1, .reveal h2, .reveal h3, .reveal h4 {
+            font-family: 'Outfit', sans-serif;
+            text-transform: none;
+            letter-spacing: -1px;
+            font-weight: 700;
+        }
+        .reveal h1 {
+            font-size: 5rem;
+            font-weight: 900;
+            background: linear-gradient(90deg, #fff, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.2em;
+        }
+        
+        .accent-red { color: var(--danger); text-shadow: 0 0 20px rgba(255, 0, 85, 0.5); }
+        .accent-blue { color: var(--primary); text-shadow: 0 0 20px rgba(0, 240, 255, 0.5); }
+
+        /* Glassmorphism Cards */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 0 20px rgba(0, 240, 255, 0.05);
+            margin: 20px auto;
+        }
+
+        /* Layouts */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+        
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .team-member {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 20px 10px;
+            border-radius: 16px;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+        .team-member:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary);
+            box-shadow: 0 10px 30px rgba(0, 240, 255, 0.2);
+        }
+        .team-member h4 { font-size: 1.2rem; margin: 10px 0 5px 0; color: #fff;}
+        .team-member p { font-size: 0.9rem; color: #aaa; margin: 0; line-height: 1.2;}
+
+        /* Mockup Images */
+        .mockup-container {
+            position: relative;
+            perspective: 1000px;
+        }
+        .mockup-img {
+            width: 100%;
+            border-radius: 16px;
+            border: 1px solid rgba(0, 240, 255, 0.4);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 240, 255, 0.2);
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .mockup-img:hover {
+            transform: scale(1.05) rotateY(-5deg) rotateX(2deg);
+        }
+
+        /* Animated Terminal */
+        .terminal {
+            background: rgba(10, 15, 25, 0.9);
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            text-align: left;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            height: 300px;
+            overflow: hidden;
+            position: relative;
+        }
+        .terminal-header {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+        .terminal-dot { width: 12px; height: 12px; border-radius: 50%; }
+        .dot-r { background: #ff5f56; } .dot-y { background: #ffbd2e; } .dot-g { background: #27c93f; }
+        
+        .line { color: #888; margin-bottom: 8px; }
+        .line-cmd { color: #fff; }
+        .line-cmd::before { content: "root@sentinel:~$ "; color: var(--primary); }
+        .line-success { color: #4ade80; }
+        .line-danger { color: #f87171; text-shadow: 0 0 10px rgba(248, 113, 113, 0.5); font-weight: bold;}
+        
+        /* Tag styling */
+        .tag {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            background: rgba(0, 240, 255, 0.1);
+            color: var(--primary);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            margin-right: 10px;
+        }
+        .tag.red { background: rgba(255, 0, 85, 0.1); color: var(--danger); border-color: rgba(255, 0, 85, 0.3); }
+    </style>
+</head>
+<body>
+    
+    <!-- Global Particles Background -->
+    <div id="particles-js"></div>
+
+    <div class="reveal">
+        <div class="slides">
+            
+            <!-- Slide 1: Hero Intro -->
+            <section data-transition="zoom">
+                <div class="glass-card">
+                    <h1>🛡️ Sentinel<span class="accent-red">API</span></h1>
+                    <h3 style="color: #aaa; font-weight: 300;">Zero-Trust API Vulnerability Scanner</h3>
+                    
+                    <div style="margin: 40px 0;">
+                        <span class="tag">AmiHacks 2026</span>
+                        <span class="tag">Track C: Deep-Tech</span>
+                        <span class="tag red">AI-Powered Pentesting</span>
+                    </div>
+
+                    <p style="font-size: 1.5rem; font-style: italic; color: #fff;">
+                        "Find the API vulnerability before the breach headline does."
+                    </p>
+                </div>
+                
+                <p class="fragment fade-up" style="font-size: 1rem; color: rgba(255,255,255,0.5); margin-top: 50px;">Press Space to initiate scan sequence...</p>
+            </section>
+
+            <!-- Slide 2: The Core Problem (Auto-Animate Start) -->
+            <section data-auto-animate>
+                <h2 style="font-size: 3.5rem;">APIs are the <span class="accent-red">#1 Attack Vector</span></h2>
+                <div class="grid-2" style="margin-top: 50px;">
+                    <div style="text-align: left;">
+                        <ul style="list-style: none; padding: 0;">
+                            <li class="fragment fade-right" style="margin-bottom: 20px;">
+                                ❌ <strong>Legacy Scanners fail.</strong> They pattern-match traffic but don't understand context.
+                            </li>
+                            <li class="fragment fade-right" style="margin-bottom: 20px;">
+                                ❌ <strong>Logic Flaws are invisible.</strong> Syntax is correct, but authorization is broken.
+                            </li>
+                            <li class="fragment fade-right">
+                                ❌ <strong>BOLA/IDOR</strong> is the most critical API threat (API1:2023), yet completely missed by automation.
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="fragment fade-left terminal">
+                        <div class="terminal-header">
+                            <div class="terminal-dot dot-r"></div>
+                            <div class="terminal-dot dot-y"></div>
+                            <div class="terminal-dot dot-g"></div>
+                        </div>
+                        <div class="line line-cmd">curl -X GET /api/v1/orders/1399</div>
+                        <div class="line">HTTP/1.1 200 OK</div>
+                        <div class="line">{ "user_id": 90, "total": "$1400" }</div>
+                        <div class="line" style="margin-top: 20px;">> Legacy Scanner: <span class="line-success">0 Vulnerabilities Found</span></div>
+                        <div class="line">> Reality: <span class="line-danger">Attacker accessed someone else's order!</span></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 3: The Solution (Auto-Animate End) -->
+            <section data-auto-animate>
+                <h2 style="font-size: 3.5rem;">The <span class="accent-blue">Sentinel</span> Solution</h2>
+                
+                <div class="grid-4" style="margin-top: 40px;">
+                    <div class="glass-card fragment fade-up" style="padding: 20px;">
+                        <h1 style="font-size: 3rem;">🧠</h1>
+                        <h4>AI Reasoning</h4>
+                        <p style="font-size: 1rem; color: #aaa;">Gemini 2.0 maps business logic and token boundaries.</p>
+                    </div>
+                    <div class="glass-card fragment fade-up" data-fragment-index="1" style="padding: 20px;">
+                        <h1 style="font-size: 3rem;">🎭</h1>
+                        <h4>Token Swapping</h4>
+                        <p style="font-size: 1rem; color: #aaa;">Deterministic cross-tenant fuzzing across active sessions.</p>
+                    </div>
+                    <div class="glass-card fragment fade-up" data-fragment-index="2" style="padding: 20px;">
+                        <h1 style="font-size: 3rem;">⛓️</h1>
+                        <h4>Agentic Exploits</h4>
+                        <p style="font-size: 1rem; color: #aaa;">Multi-step attack chaining (Recon -> ID Harvest -> Exploit).</p>
+                    </div>
+                    <div class="glass-card fragment fade-up" data-fragment-index="3" style="padding: 20px;">
+                        <h1 style="font-size: 3rem;">🚀</h1>
+                        <h4>Actionable Fixes</h4>
+                        <p style="font-size: 1rem; color: #aaa;">Reproducible PoCs and defense-in-depth code snippets.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 4: Real-time Dashboard Mockup -->
+            <section>
+                <h2>Premium Real-Time Auditing</h2>
+                <div class="grid-2" style="margin-top: 30px;">
+                    <div style="text-align: left;" class="fragment fade-right">
+                        <h3>Glassmorphic UI</h3>
+                        <p>Track your scans live via WebSockets.</p>
+                        <ul>
+                            <li>Live radar execution console</li>
+                            <li>CVSS v3.1 Risk Scoring matrix</li>
+                            <li>Real-time vulnerability categorization</li>
+                        </ul>
+                    </div>
+                    <div class="mockup-container fragment fade-left">
+                        <img src="dashboard.jpg" alt="Dashboard View" class="mockup-img">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 5: Vulnerability Details Mockup -->
+            <section>
+                <h2>Vulnerability Intelligence</h2>
+                <div class="grid-2" style="margin-top: 30px;">
+                    <div class="mockup-container fragment fade-right">
+                        <img src="details.jpg" alt="Details View" class="mockup-img">
+                    </div>
+                    <div style="text-align: left;" class="fragment fade-left">
+                        <h3>Beyond the Alert</h3>
+                        <p>We don't just alert you. We explain it.</p>
+                        <ul>
+                            <li><span class="accent-red">AI Explanation</span>: Plain-English impact summary.</li>
+                            <li><span class="accent-blue">PoC Terminal</span>: Copy-pasteable cURL commands to reproduce the attack.</li>
+                            <li><span class="accent-blue">Remediation</span>: Dev-ready framework specific fixes.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 6: The AI Agent Code Deep Dive -->
+            <section>
+                <h2>Agentic Exploit Chain <span class="accent-blue">(Under the Hood)</span></h2>
+                <p style="font-size: 1.2rem; color: #aaa;">How Gemini generates test cases for IDOR.</p>
+                
+                <div class="fragment fade-up">
+                    <pre><code class="language-python" data-trim data-line-numbers="1-2|4-6|8-11">
+# AI Brain Prompt Template (planner.py)
+prompt = f"""
+You are an expert API Pentester. Analyze this endpoint: {endpoint.path}
+Identify parameters suitable for Broken Object Level Authorization (IDOR) attacks.
+Generate exactly 5 fuzzing scenarios mutating the '{target_param}' field.
+Output strictly in JSON format.
+"""
+
+response = gemini_client.generate_content(prompt)
+attack_plan = json.loads(response.text)
+await AttackEngine.execute_concurrent_swarm(attack_plan)
+                    </code></pre>
+                </div>
+                <p class="fragment fade-in" style="margin-top: 20px;">
+                    <span class="tag red">100% Autonomous</span> <span class="tag">Zero False Positives</span>
+                </p>
+            </section>
+
+            <!-- Slide 7: The Architecture -->
+            <section>
+                <h2>Tech Stack</h2>
+                <div class="glass-card fragment fade-up">
+                    <div class="grid-2">
+                        <div>
+                            <h3 class="accent-blue">Backend Engine</h3>
+                            <ul style="font-size: 1.2rem;">
+                                <li><strong>Python 3.12</strong> + <strong>FastAPI</strong> (Async)</li>
+                                <li><strong>httpx</strong> (High-concurrency fuzzer)</li>
+                                <li><strong>Google Gemini 2.0 Flash</strong> (Reasoning)</li>
+                                <li>OWASP API Top 10 Scanners</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="accent-blue">Frontend UI</h3>
+                            <ul style="font-size: 1.2rem;">
+                                <li><strong>React 18</strong> + <strong>Vite</strong></li>
+                                <li><strong>WebSockets</strong> (Live streaming)</li>
+                                <li><strong>Recharts</strong> (Telemetry graphics)</li>
+                                <li>Custom Glassmorphism CSS</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 8: Team -->
+            <section>
+                <h2>The Sentinel Squad</h2>
+                <div class="grid-4" style="margin-top: 50px;">
+                    <div class="team-member fragment fade-up" data-fragment-index="0">
+                        <div style="font-size: 3rem; margin-bottom: 10px;">👑</div>
+                        <h4>Ajay yadav</h4>
+                        <p class="accent-blue">Full-Stack Lead & Security Architect</p>
+                    </div>
+                    <div class="team-member fragment fade-up" data-fragment-index="1">
+                        <div style="font-size: 3rem; margin-bottom: 10px;">⚙️</div>
+                        <h4>Arvind kataria</h4>
+                        <p class="accent-blue">Backend Developer & DevOps</p>
+                    </div>
+                    <div class="team-member fragment fade-up" data-fragment-index="2">
+                        <div style="font-size: 3rem; margin-bottom: 10px;">🎨</div>
+                        <h4>Harsh verma</h4>
+                        <p class="accent-blue">Frontend Lead & WebSockets</p>
+                    </div>
+                    <div class="team-member fragment fade-up" data-fragment-index="3">
+                        <div style="font-size: 3rem; margin-bottom: 10px;">🤖</div>
+                        <h4>yashwant Rao</h4>
+                        <p class="accent-blue">UI/UX & AI Integrations</p>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Slide 9: Demo Call to Action -->
+            <section data-background-gradient="linear-gradient(to bottom, #05050a, #1a0010)">
+                <h1 style="font-size: 6rem;" class="fragment zoom-in">DEMO TIME</h1>
+                <p class="fragment fade-up" style="font-size: 1.5rem; margin-top: 20px;">
+                    Let's break some APIs.
+                </p>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/plugin/highlight/highlight.min.js"></script>
+    
+    <!-- Particles.js for background -->
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    
+    <script>
+        // Initialize Reveal
+        Reveal.initialize({
+            hash: true,
+            transition: 'slide',
+            backgroundTransition: 'fade',
+            plugins: [ RevealHighlight ],
+            autoAnimateEasing: 'ease-out',
+            autoAnimateDuration: 0.8,
+            autoAnimateUnmatched: false
+        });
+
+        // Initialize Particles.js
+        particlesJS("particles-js", {
+            "particles": {
+                "number": { "value": 80, "density": { "enable": true, "value_area": 800 } },
+                "color": { "value": "#00f0ff" },
+                "shape": { "type": "circle" },
+                "opacity": { "value": 0.5, "random": true },
+                "size": { "value": 3, "random": true },
+                "line_linked": {
+                    "enable": true,
+                    "distance": 150,
+                    "color": "#00f0ff",
+                    "opacity": 0.2,
+                    "width": 1
+                },
+                "move": {
+                    "enable": true,
+                    "speed": 2,
+                    "direction": "none",
+                    "random": true,
+                    "straight": false,
+                    "out_mode": "out",
+                    "bounce": false,
+                }
+            },
+            "interactivity": {
+                "detect_on": "canvas",
+                "events": {
+                    "onhover": { "enable": true, "mode": "grab" },
+                    "onclick": { "enable": true, "mode": "push" },
+                    "resize": true
+                },
+                "modes": {
+                    "grab": { "distance": 140, "line_linked": { "opacity": 1 } },
+                    "push": { "particles_nb": 4 }
+                }
+            },
+            "retina_detect": true
+        });
+    </script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { ShieldAlert, Zap, Key, ExternalLink, Activity } from 'lucide-react';
 
-export default function Navbar({ onOpenKeyModal, apiKeySet, isScanning, onOpenNewScan }) {
+export default function Navbar({ onOpenKeyModal, apiKeySet, isScanning, onOpenNewScan, uiMode, setUiMode }) {
   return (
     <header style={{
       display: 'flex',
@@ -56,6 +56,29 @@ export default function Navbar({ onOpenKeyModal, apiKeySet, isScanning, onOpenNe
           <span style={{ color: isScanning ? '#f87171' : '#34d399', fontWeight: 500 }}>
             {isScanning ? 'Attack Fuzzing Active' : 'Scanner Ready'}
           </span>
+        </div>
+
+        <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: '20px', padding: '4px' }}>
+          <button
+            onClick={() => setUiMode && setUiMode('developer')}
+            style={{
+              padding: '4px 12px', borderRadius: '16px', border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: 600,
+              background: uiMode === 'developer' ? 'linear-gradient(135deg, #0284c7 0%, #38bdf8 100%)' : 'transparent',
+              color: uiMode === 'developer' ? '#07090e' : 'var(--text-dim)'
+            }}
+          >
+            Developer
+          </button>
+          <button
+            onClick={() => setUiMode && setUiMode('client')}
+            style={{
+              padding: '4px 12px', borderRadius: '16px', border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: 600,
+              background: uiMode === 'client' ? 'linear-gradient(135deg, #10b981 0%, #34d399 100%)' : 'transparent',
+              color: uiMode === 'client' ? '#07090e' : 'var(--text-dim)'
+            }}
+          >
+            Client
+          </button>
         </div>
 
         <button

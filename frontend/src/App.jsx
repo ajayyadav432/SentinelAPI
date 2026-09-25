@@ -7,6 +7,7 @@ import AgenticChainView from './components/AgenticChainView';
 import AttackGraphView from './components/AttackGraphView';
 import PrRemediationModal from './components/PrRemediationModal';
 import PentestChatbot from './components/PentestChatbot';
+import ClientFindingCard from './components/ClientFindingCard';
 import ScanConfigModal from './components/ScanConfigModal';
 import KeyModal from './components/KeyModal';
 import { Shield, Zap, Search, Filter, Sparkles, Layers, Bot, Terminal, GitPullRequest } from 'lucide-react';
@@ -22,6 +23,7 @@ export default function App() {
   const [activeFilter, setActiveFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('findings'); // 'findings', 'graph', 'agent'
+  const [uiMode, setUiMode] = useState('developer'); // 'developer' | 'client'
 
   // Modals & Chat state
   const [isConfigOpen, setIsConfigOpen] = useState(false);
@@ -147,6 +149,8 @@ export default function App() {
         apiKeySet={Boolean(apiKey)}
         isScanning={isScanning}
         onOpenNewScan={() => setIsConfigOpen(true)}
+        uiMode={uiMode}
+        setUiMode={setUiMode}
       />
 
       <main style={{ flex: 1, padding: '28px 36px', maxWidth: '1440px', margin: '0 auto', width: '100%' }}>
@@ -240,7 +244,7 @@ export default function App() {
         )}
 
         {/* View Mode Navigation Tabs */}
-        {summary && (
+        {summary && uiMode === 'developer' && (
           <div style={{
             display: 'flex',
             gap: '12px',
@@ -279,17 +283,17 @@ export default function App() {
         )}
 
         {/* View 1: Visual Attack Graph */}
-        {summary && activeTab === 'graph' && summary.ai_risk_overview?.attack_graph && (
+        {summary && uiMode === 'developer' && activeTab === 'graph' && summary.ai_risk_overview?.attack_graph && (
           <AttackGraphView graphData={summary.ai_risk_overview.attack_graph} />
         )}
 
         {/* View 2: Autonomous Pentest Agent Exploit Chain */}
-        {summary && activeTab === 'agent' && summary.ai_risk_overview?.agentic_chain && (
+        {summary && uiMode === 'developer' && activeTab === 'agent' && summary.ai_risk_overview?.agentic_chain && (
           <AgenticChainView agenticData={summary.ai_risk_overview.agentic_chain} />
         )}
 
         {/* View 3: Findings Section */}
-        {summary && activeTab === 'findings' && findings.length > 0 && (
+        {summary && (uiMode === 'client' || activeTab === 'findings') && findings.length > 0 && (
           <div>
             {/* Filter and Search Bar */}
             <div style={{
@@ -347,12 +351,16 @@ export default function App() {
 
             {/* Findings Cards List */}
             {filteredFindings.map((finding) => (
-              <FindingCard
-                key={finding.id}
-                finding={finding}
-                onGeneratePr={handleGeneratePr}
-                onAskAi={handleAskAi}
-              />
+              uiMode === 'client' ? (
+                <ClientFindingCard key={finding.id} finding={finding} />
+              ) : (
+                <FindingCard
+                  key={finding.id}
+                  finding={finding}
+                  onGeneratePr={handleGeneratePr}
+                  onAskAi={handleAskAi}
+                />
+              )
             ))}
           </div>
         )}
@@ -363,6 +371,7 @@ export default function App() {
         scanId={scanId}
         findingContext={chatFindingContext}
         apiKey={apiKey}
+        onStartScan={handleStartScan}
       />
 
       {/* PR Remediation Modal */}

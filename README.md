@@ -62,6 +62,16 @@ Modern applications expose hundreds of internal and third-party APIs. While gene
 
 ---
 
+## 🖼️ Application Screenshots
+
+### Live Scan Dashboard
+![Live Scan Dashboard](dashboard.jpg)
+
+### Vulnerability Intelligence Details
+![Vulnerability Intelligence Details](details.jpg)
+
+---
+
 ## 🎯 OWASP API Security Top 10 Coverage
 
 | OWASP Tag | Vulnerability Class | SentinelAPI Detection Strategy | Severity |
@@ -130,11 +140,45 @@ python3 /home/ajay/.gemini/config/skills/swe-loop/tools/quality_check.py backend
 
 ---
 
-## 👥 Hackathon Submission
+## 👥 Team Contribution Details
+
+> **AmiHacks 1.0 — Section 6.1 Required Deliverable**
+
+| Team Member | Role | Key Contributions |
+|---|---|---|
+| **Ajay yadav** | Full-Stack Lead & Security Architect | Backend FastAPI architecture, IDOR/BOLA scanner, Gemini AI integration, Agentic pentest chain. |
+| **Arvind kataria** | Backend Developer | Developed Attack Graph engine, Rate Limit & Misconfig scanners, CLI security gate, CI/CD pipeline setup. |
+| **Harsh verma** | Frontend Lead | React glassmorphism dashboard, real-time WebSocket scan feed, Attack Graph visualization. |
+| **yashwant Rao** | UI/UX & AI Integrations | AI chatbot with voice input, findings explorer, UI polish, and presentation design. |
+
+> 💡 This project was built during the official 24-hour AmiHacks 2026 hackathon window. AI-assisted development (Gemini, GitHub Copilot) was used in accordance with the rules (Section 5.1).
+
+---
+
+## 🔮 Future Scope
+
+The following improvements are planned for production-ready iterations post-hackathon:
+
+| Feature | Priority | Description |
+|---|---|---|
+| **Mass Assignment Detection (API6:2023)** | 🔴 High | Test POST/PUT endpoints for privilege-escalating extra fields (`admin: true`, `role: admin`) |
+| **Scan History & Trend Dashboard** | 🔴 High | Persist scan summaries to SQLite, show vulnerability trends over time across org's API surface |
+| **JWT Signature Bypass (API8:2023)** | 🔴 High | Test for `alg: none` attacks and weak HMAC secrets via brute-force |
+| **Mass Enumeration / BFLA Auto-Discovery** | 🟡 Medium | Automatically enumerate admin-tier function paths from spec and test with low-privilege tokens |
+| **Remediation PR Generator** | 🟡 Medium | Auto-generate GitHub Pull Requests with code fixes for detected vulnerabilities using the Gemini Diff API |
+| **Multi-Tenant SaaS Mode** | 🟡 Medium | Support scanning multiple APIs concurrently with per-project scan history |
+| **gRPC & GraphQL Support** | 🟢 Low | Extend ingestion layer to parse GraphQL schemas and gRPC protobuf definitions |
+| **Slack / PagerDuty Alerting** | 🟢 Low | Post CRITICAL findings to Slack channels or trigger PagerDuty incidents in CI/CD mode |
+| **OWASP ZAP Integration** | 🟢 Low | Use ZAP for passive scan baseline alongside the active zero-trust tests |
+
+---
+
+## 🏆 Hackathon Submission
 
 - **Event**: AmiHacks 2026
-- **Track**: Track C: Industry / Deep-Tech
+- **Track**: Track C — Industry / Deep-Tech
 - **Project**: SentinelAPI — Zero-Trust API Vulnerability Scanner
-- **Author**: Ajay Yadav ([@ajayyadav432](https://github.com/ajayyadav432))
+- **Tagline**: *"Find the API vulnerability before the breach headline does."*
+- **GitHub**: [ajayyadav432/SentinelAPI](https://github.com/ajayyadav432/SentinelAPI)
 
 *Licensed under the [MIT License](LICENSE).*

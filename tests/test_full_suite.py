@@ -177,3 +177,28 @@ async def test_full_scheduler_and_report(parsed_spec):
     html = ReportGenerator.generate_html_report(summary)
     assert "SentinelAPI Zero-Trust Security Audit" in html
     assert "test-suite-scan-1" in html
+
+from backend.ai.voice import VoiceProcessor
+
+@pytest.mark.asyncio
+async def test_voice_processor_graceful_handling():
+    vp = VoiceProcessor()
+    # Test empty or short corrupted bytes handling
+    res = await vp.transcribe_audio(b"")
+    assert "error" in res
+    assert res.get("text") == ""
+
+    # Test short invalid buffer
+    res_short = await vp.transcribe_audio(b"RIFF" + b"\x00" * 40)
+    assert "error" in res_short
+
+@pytest.mark.asyncio
+async def test_voice_chat_pipeline():
+    chatbot = PentestChatbot()
+    transcribed_text = "What is the business impact of BOLA on vehicle locations?"
+    req = ChatRequest(messages=[{"role": "user", "content": transcribed_text}])
+    resp = await chatbot.chat(req)
+    assert resp.reply is not None
+    assert len(resp.reply) > 20
+    assert len(resp.suggested_actions) > 0
+

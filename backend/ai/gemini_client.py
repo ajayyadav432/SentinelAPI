@@ -11,7 +11,7 @@ class GeminiSecurityBrain:
 
     def __init__(self, api_key: Optional[str] = None):
         self.api_key = api_key or os.environ.get("GEMINI_API_KEY", "")
-        self.model = "gemini-2.0-flash"
+        self.model = "gemini-3.8-flash"
         self.endpoint_url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent"
 
     def is_configured(self) -> bool:

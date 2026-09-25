@@ -17,6 +17,21 @@ export default function AttackGraphView({ graphData }) {
     return '#10b981';
   };
 
+  // Dynamically compute bounding box including all nodes, glow rings, and edge margins
+  const minX = nodes && nodes.length > 0 ? Math.min(...nodes.map(n => n.x - 26)) : 20;
+  const maxX = nodes && nodes.length > 0 ? Math.max(...nodes.map(n => n.x + 190)) : 940;
+  const minY = nodes && nodes.length > 0 ? Math.min(...nodes.map(n => n.y - 20)) : 20;
+  const maxY = nodes && nodes.length > 0 ? Math.max(...nodes.map(n => n.y + 55)) : 440;
+
+  const paddingX = 30;
+  const paddingTop = 25;
+  const paddingBottom = selectedNode ? 100 : 50;
+
+  const vbMinX = Math.floor(Math.min(minX - paddingX, 0));
+  const vbMinY = Math.floor(Math.min(minY - paddingTop, 0));
+  const vbWidth = Math.ceil(Math.max(maxX + paddingX - vbMinX, 940));
+  const vbHeight = Math.ceil(Math.max(maxY + paddingBottom - vbMinY, 480));
+
   return (
     <div className="glass-panel glow-cyan" style={{ padding: '24px', marginBottom: '28px' }}>
       {/* Top Banner */}
@@ -63,7 +78,11 @@ export default function AttackGraphView({ graphData }) {
           pointerEvents: 'none'
         }} />
 
-        <svg width="100%" height="440" viewBox="0 0 920 440" style={{ display: 'block' }}>
+        <svg
+          width="100%"
+          viewBox={`${vbMinX} ${vbMinY} ${vbWidth} ${vbHeight}`}
+          style={{ display: 'block', width: '100%', height: 'auto', minHeight: '440px' }}
+        >
           <defs>
             <linearGradient id="grad-crit" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stopColor="#a855f7" />

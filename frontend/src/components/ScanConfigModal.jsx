@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { X, Play, Sparkles, FileCode, Server, Shield, Key } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, Play, Sparkles, FileCode, Server, Shield, Key, Activity } from 'lucide-react';
 
 export default function ScanConfigModal({ isOpen, onClose, onStartScan, defaultSpecText }) {
   if (!isOpen) return null;
@@ -10,6 +10,11 @@ export default function ScanConfigModal({ isOpen, onClose, onStartScan, defaultS
   const [userBToken, setUserBToken] = useState('');
   const [geminiKey, setGeminiKey] = useState(localStorage.getItem('sentinel_gemini_key') || '');
   const [loadingDemo, setLoadingDemo] = useState(false);
+  // HAR traffic mode
+  const [inputMode, setInputMode] = useState('spec'); // 'spec' | 'har'
+  const [harFile, setHarFile] = useState(null);
+  const [harFileName, setHarFileName] = useState('');
+  const harInputRef = useRef(null);
 
   useEffect(() => {
     if (!specText && defaultSpecText) {
@@ -44,17 +49,42 @@ export default function ScanConfigModal({ isOpen, onClose, onStartScan, defaultS
     }
   };
 
-  const handleLaunch = () => {
+  const handleHarFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setHarFile(file);
+      setHarFileName(file.name);
+    }
+  };
+
+  const handleLaunch = async () => {
     if (geminiKey) {
       localStorage.setItem('sentinel_gemini_key', geminiKey);
     }
-    onStartScan({
-      spec_content: specText,
-      target_base_url: targetUrl,
-      user_a_token: userAToken || undefined,
-      user_b_token: userBToken || undefined,
-      gemini_api_key: geminiKey || undefined
-    });
+
+    if (inputMode === 'har') {
+      if (!harFile) return;
+      const formData = new FormData();
+      formData.append('har_file', harFile);
+      formData.append('target_base_url', targetUrl);
+      if (userAToken) formData.append('user_a_token', userAToken);
+      if (userBToken) formData.append('user_b_token', userBToken);
+      if (geminiKey) formData.append('gemini_api_key', geminiKey);
+
+      const res = await fetch('/api/scan/start-har', { method: 'POST', body: formData });
+      if (res.ok) {
+        const data = await res.json();
+        onStartScan({ scan_id: data.scan_id, mode: 'har' });
+      }
+    } else {
+      onStartScan({
+        spec_content: specText,
+        target_base_url: targetUrl,
+        user_a_token: userAToken || undefined,
+        user_b_token: userBToken || undefined,
+        gemini_api_key: geminiKey || undefined
+      });
+    }
     onClose();
   };
 
@@ -145,7 +175,37 @@ export default function ScanConfigModal({ isOpen, onClose, onStartScan, defaultS
             />
           </div>
 
-          {/* OpenAPI Spec Content / File */}
+          {/* Input Mode Toggle: OpenAPI Spec vs HAR Traffic */}
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '4px' }}>
+            {[['spec', <FileCode size={13} />, 'OpenAPI / Swagger Spec'], ['har', <Activity size={13} />, 'HAR Traffic Capture']].map(([mode, icon, label]) => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => setInputMode(mode)}
+                style={{
+                  flex: 1,
+                  padding: '8px 12px',
+                  borderRadius: '8px',
+                  border: inputMode === mode ? '1px solid var(--cyan-accent)' : '1px solid rgba(255,255,255,0.1)',
+                  background: inputMode === mode ? 'rgba(56,189,248,0.12)' : 'rgba(255,255,255,0.03)',
+                  color: inputMode === mode ? 'var(--cyan-accent)' : 'var(--text-muted)',
+                  fontWeight: inputMode === mode ? 700 : 400,
+                  fontSize: '12px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                {icon} {label}
+              </button>
+            ))}
+          </div>
+
+          {inputMode === 'spec' ? (
+          /* OpenAPI Spec Content / File */
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
               <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>
@@ -174,6 +234,42 @@ export default function ScanConfigModal({ isOpen, onClose, onStartScan, defaultS
               }}
             />
           </div>
+          ) : (
+          /* HAR Traffic File Upload */
+          <div>
+            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '6px' }}>
+              HAR Traffic Capture File (.har)
+            </label>
+            <div
+              onClick={() => harInputRef.current?.click()}
+              style={{
+                border: '2px dashed rgba(56,189,248,0.35)',
+                borderRadius: '10px',
+                padding: '28px',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '10px',
+                cursor: 'pointer',
+                background: 'rgba(56,189,248,0.04)',
+                transition: 'border-color 0.2s ease'
+              }}
+            >
+              <Activity size={28} color="var(--cyan-accent)" opacity={0.6} />
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center' }}>
+                {harFileName
+                  ? <><strong style={{ color: '#38bdf8' }}>{harFileName}</strong><br/><span style={{fontSize:'10px'}}>Ready to scan</span></>
+                  : <>Click to select a <strong>.har</strong> file<br/><span style={{fontSize:'10px'}}>Export from Chrome DevTools → Network → Save as HAR</span></>
+                }
+              </div>
+              <input ref={harInputRef} type="file" accept=".har,.json" onChange={handleHarFileSelect} style={{ display: 'none' }} />
+            </div>
+            <div style={{ fontSize: '10.5px', color: 'var(--text-dim)', marginTop: '6px' }}>
+              💡 In Chrome: Open DevTools (F12) → Network tab → Right-click → "Save all as HAR with content"
+            </div>
+          </div>
+          )}
 
           {/* Dual Identity Tokens for BOLA Testing */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>

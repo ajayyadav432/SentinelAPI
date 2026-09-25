@@ -86,7 +86,7 @@ class SchemaDriftScanner:
 
                 findings.append(Finding(
                     vuln_type="OWASP API3:2023 - Differential Schema Drift (Shadow Data Leak)",
-                    category="DATA_EXPOSURE",
+                    category="SCHEMA_DRIFT",
                     severity="HIGH" if any(s in " ".join(sensitive_shadow_keys).lower() for s in ["vin", "gps", "pass", "id", "pin", "hash", "secret"]) else "MEDIUM",
                     cvss_score=7.4,
                     owasp_tag="API3:2023",
