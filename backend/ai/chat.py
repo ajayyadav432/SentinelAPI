@@ -150,7 +150,7 @@ class PentestChatbot:
                 "Click the **'Generate Fix PR'** button on the finding card, or let me know your target framework (FastAPI, Express, Spring Boot) to tailor the patch."
             )
             suggested = ["Generate Git Patch", "Run Regression Tests"]
-        elif "vulnerabilit" in low_q or "explain" in low_q:
+        elif "vuln" in low_q or "vun" in low_q or "explain" in low_q or "find" in low_q or "result" in low_q:
             if scan_summary and scan_summary.get("findings"):
                 reply = "**Here are the vulnerabilities found in the latest scan:**\n\n"
                 for idx, f in enumerate(scan_summary.get("findings")[:5]):
@@ -171,8 +171,13 @@ class PentestChatbot:
             reply = (
                 f"I've analyzed your question regarding our Zero-Trust API audit. "
                 f"In zero-trust architecture, every transaction must authenticate the actor and authorize the specific resource relationship (ReBAC). "
-                f"How can I help you resolve findings on your endpoints?"
             )
+            if scan_summary and scan_summary.get("findings"):
+                reply += "\n\n**For your reference, here are the vulnerabilities we found:**\n"
+                for idx, f in enumerate(scan_summary.get("findings")[:5]):
+                    reply += f"{idx+1}. **{f.get('vuln_type')}** at `{f.get('endpoint')}`\n"
+            else:
+                reply += "\n\nHow can I help you resolve findings on your endpoints?"
             suggested = ["Why did IDOR happen?", "How to prevent schema drift?", "Generate Fix PR"]
 
         return ChatResponse(reply=reply, suggested_actions=suggested, auto_speak=auto_speak)
