@@ -69,7 +69,7 @@ class AttackGraphBuilder:
                 "category": ep.category,
                 "status": status,
                 "findings_count": len(ep_findings),
-                "x": 380,
+                "x": 520,
                 "y": y_pos,
                 "description": ep.summary or ep.description or f"Endpoint: {ep.path}"
             })
@@ -78,7 +78,7 @@ class AttackGraphBuilder:
         # 3. Asset Nodes — dynamically derived from actual findings categories
         seen_categories: Set[str] = set()
         asset_nodes: Dict[str, str] = {}  # category -> node_id
-        x_asset = 750
+        x_asset = 940
         y_asset = 130
         for f in findings:
             cat = f.category

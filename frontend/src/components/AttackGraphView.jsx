@@ -101,7 +101,11 @@ export default function AttackGraphView({ graphData }) {
           </defs>
 
           {/* Render Connecting Edges */}
-          {edges.map((edge) => {
+          {[...edges].sort((a, b) => {
+            const aIsSelected = a.source === selectedNode?.id || a.target === selectedNode?.id;
+            const bIsSelected = b.source === selectedNode?.id || b.target === selectedNode?.id;
+            return aIsSelected === bIsSelected ? 0 : aIsSelected ? 1 : -1;
+          }).map((edge) => {
             const src = nodes.find(n => n.id === edge.source);
             const tgt = nodes.find(n => n.id === edge.target);
             if (!src || !tgt) return null;
@@ -109,10 +113,15 @@ export default function AttackGraphView({ graphData }) {
             const isCrit = edge.severity === 'CRITICAL';
             const strokeColor = isCrit ? 'url(#grad-crit)' : '#38bdf8';
 
-            // Quadratic bezier curve midpoint
-            const midX = (src.x + tgt.x) / 2;
-            const midY = (src.y + tgt.y) / 2;
-            const pathD = `M ${src.x + 40} ${src.y + 15} Q ${midX} ${midY - 10} ${tgt.x - 10} ${tgt.y + 15}`;
+            // Connect right edge of source (x + 160) to left edge of target (x - 20)
+            const startX = src.x + 160;
+            const startY = src.y + 10;
+            const endX = tgt.x - 20;
+            const endY = tgt.y + 10;
+            
+            const midX = (startX + endX) / 2;
+            const midY = (startY + endY) / 2;
+            const pathD = `M ${startX} ${startY} Q ${midX} ${midY - 15} ${endX} ${endY}`;
 
             return (
               <g key={edge.id}>
@@ -155,7 +164,7 @@ export default function AttackGraphView({ graphData }) {
           })}
 
           {/* Render Nodes */}
-          {nodes.map((node) => {
+          {[...nodes].sort((a, b) => (a.id === selectedNode?.id ? 1 : b.id === selectedNode?.id ? -1 : 0)).map((node) => {
             const color = getNodeColor(node);
             const isSelected = selectedNode?.id === node.id;
             const isActor = node.type === 'actor' || node.type === 'victim';
@@ -165,8 +174,8 @@ export default function AttackGraphView({ graphData }) {
               <g
                 key={node.id}
                 onClick={() => setSelectedNode(node)}
-                style={{ cursor: 'pointer' }}
-                transform={`translate(${node.x - 20}, ${node.y - 10})`}
+                style={{ cursor: 'pointer', transition: 'all 0.3s ease', transformOrigin: `${node.x + 70}px ${node.y + 10}px` }}
+                transform={`translate(${node.x - 20}, ${node.y - 10}) ${isSelected ? 'scale(1.05)' : ''}`}
               >
                 {/* Glow ring on click or critical */}
                 {(isSelected || node.status === 'compromised') && (
